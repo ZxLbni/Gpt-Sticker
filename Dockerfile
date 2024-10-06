@@ -4,14 +4,20 @@ FROM python:3.10-slim
 # Set the working directory in the container
 WORKDIR /usr/src/app
 
-# Copy the requirements.txt to the container
-COPY requirements.txt ./
-
-# Install any necessary dependencies
-RUN pip install --no-cache-dir -r requirements.txt
-
-# Copy the rest of the code to the container
+# Copy the current directory contents into the container at /usr/src/app
 COPY . .
 
-# Command to run the application
+# Install any needed packages specified in requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Make port 8443, 80, 88, and 443 available to the world outside this container
+EXPOSE 8443
+EXPOSE 80
+EXPOSE 88
+EXPOSE 443
+
+# Define environment variable
+ENV PYTHONUNBUFFERED=1
+
+# Run bot.py when the container launches
 CMD ["python", "bot.py"]
