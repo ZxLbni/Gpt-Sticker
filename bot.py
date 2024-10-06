@@ -16,7 +16,7 @@ async def get_sticker_id(update: Update, context) -> None:
 # Main function to start the bot
 async def main():
     # Add your bot token here
-    TOKEN = ""
+    TOKEN = "8018057302:AAEgq6gIUDsPyc9BBVgssDUkPmYewtTH2FM"
     
     # Create the Application instance
     application = Application.builder().token(TOKEN).build()
