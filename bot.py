@@ -1,34 +1,53 @@
-from telegram import Update, ParseMode
-from telegram.ext import Application, CommandHandler, MessageHandler, filters
+from telegram import Update, InputFile
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters, CallbackContext
 
-# Function to handle /start command
-async def start(update: Update, context) -> None:
-    await update.message.reply_text("Send me a sticker, and I'll provide the file ID!")
+# Define your bot token
+BOT_TOKEN = 'YOUR_BOT_TOKEN'
 
-# Function to handle stickers and extract file ID
-async def get_sticker_id(update: Update, context) -> None:
+# Start command
+def start(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text(
+        "Welcome! Send me a sticker, and I'll get its ID and allow you to download it.")
+
+# Function to handle sticker messages
+def sticker_handler(update: Update, context: CallbackContext) -> None:
     sticker = update.message.sticker
-    if sticker:
-        await update.message.reply_text(f"Sticker File ID: <code>{sticker.file_id}</code>", parse_mode=ParseMode.HTML)
-    else:
-        await update.message.reply_text("Please send a sticker!")
 
-# Main function to start the bot
-async def main():
-    # Add your bot token here
-    TOKEN = "8018057302:AAEgq6gIUDsPyc9BBVgssDUkPmYewtTH2FM"
-    
-    # Create the Application instance
-    application = Application.builder().token(TOKEN).build()
+    # Sticker File ID
+    sticker_id = sticker.file_id
+    update.message.reply_text(f"Sticker ID: `{sticker_id}`", parse_mode='Markdown')
 
-    # Handlers
-    application.add_handler(CommandHandler("start", start))
-    application.add_handler(MessageHandler(filters.Sticker.ALL, get_sticker_id))
+    # Sticker File Download
+    file = context.bot.get_file(sticker_id)
+    file.download(f'{sticker_id}.webp')
+    with open(f'{sticker_id}.webp', 'rb') as sticker_file:
+        update.message.reply_document(document=sticker_file, filename=f'{sticker_id}.webp')
 
-    # Start the bot
-    await application.start_polling()
-    await application.idle()
+# Help command
+def help_command(update: Update, context: CallbackContext) -> None:
+    update.message.reply_text("Send me a sticker to get its ID and download it!")
+
+# Main function to run the bot
+def main() -> None:
+    # Create the Updater and pass it your bot's token
+    updater = Updater(BOT_TOKEN)
+
+    # Get the dispatcher to register handlers
+    dispatcher = updater.dispatcher
+
+    # Command handlers
+    dispatcher.add_handler(CommandHandler("start", start))
+    dispatcher.add_handler(CommandHandler("help", help_command))
+
+    # Sticker handler
+    dispatcher.add_handler(MessageHandler(Filters.sticker, sticker_handler))
+
+    # Start the Bot
+    updater.start_polling()
+
+    # Run the bot until you press Ctrl-C or the process receives SIGINT, SIGTERM, or SIGABRT
+    updater.idle()
 
 if __name__ == '__main__':
-    import asyncio
-    asyncio.run(main())
+    main()
+    
